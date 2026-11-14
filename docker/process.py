@@ -1,4 +1,4 @@
-import argparse,hashlib,json,time,datetime,pathlib,os
+import argparse,hashlib,json,time,datetime,pathlib,os,zipfile
 import numpy as np
 import soundfile as sf
 import torch
@@ -25,7 +25,15 @@ def sha(path):
 assert torch.cuda.is_available(),'CUDA is required; refusing CPU fallback'
 assert target.suffix.lower()=='.wav','Output must be WAV'
 torch.set_num_threads(4)
-model,state,*_=init_df(model_base_dir='DeepFilterNet3',post_filter=False,log_file=None)
+model_archive=pathlib.Path(__file__).resolve().parents[1]/'models/DeepFilterNet3.zip'
+model_cache=pathlib.Path(os.environ.get('XDG_CACHE_HOME','/cache'))/'bundled-models'/hashlib.sha256(model_archive.read_bytes()).hexdigest()
+if not (model_cache/'DeepFilterNet3/config.ini').exists():
+    model_cache.mkdir(parents=True,exist_ok=True)
+    with zipfile.ZipFile(model_archive) as archive:
+        for name in archive.namelist():
+            assert (model_cache/name).resolve().is_relative_to(model_cache.resolve()),'Unsafe model archive path'
+        archive.extractall(model_cache)
+model,state,*_=init_df(model_base_dir=str(model_cache/'DeepFilterNet3'),post_filter=False,log_file=None)
 assert next(model.parameters()).is_cuda
 assert not target.exists() and not partial.exists()
 info=sf.info(source)
@@ -34,7 +42,7 @@ assert state.sr()==48000
 from math import gcd
 factor=gcd(rate,state.sr())
 up,down=state.sr()//factor,rate//factor
-record(event='start',command=' '.join(__import__('sys').argv),gpu=torch.cuda.get_device_name(0),device=str(next(model.parameters()).device),torch=torch.__version__,script_sha256=sha(pathlib.Path(__file__)),source_sha256=sha(source),frames=info.frames,channels=info.channels,sample_rate=rate,model='DeepFilterNet3',segment_seconds=30,overlap_seconds=1)
+record(event='start',command=' '.join(__import__('sys').argv),gpu=torch.cuda.get_device_name(0),device=str(next(model.parameters()).device),torch=torch.__version__,script_sha256=sha(pathlib.Path(__file__)),source_sha256=sha(source),frames=info.frames,channels=info.channels,sample_rate=rate,model='DeepFilterNet3',model_archive_sha256=sha(model_archive),segment_seconds=30,overlap_seconds=1)
 start_time=time.monotonic()
 window=rate*30;overlap=rate;hop=window-overlap
 fade=np.linspace(0,1,overlap,dtype=np.float32)[:,None]

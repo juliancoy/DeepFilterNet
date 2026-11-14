@@ -39,5 +39,6 @@ retains channels, and compensates model delay. It writes PCM16 WAV. A neighborin
 `.run.jsonl` records progress, CUDA device, source/script/output hashes, clipping
 counts, and final duration/channel validation. An incomplete result has a
 `.processing.wav` filename; the final name appears only after checks succeed.
-Model weights download on first use. Only trusted upstream model checkpoints
+Model weights come from `models/DeepFilterNet3.zip` in this checkout and are
+extracted into a cache keyed by the archive SHA-256. Only trusted model checkpoints
 should be used: the runtime enables loading their legacy checkpoint format.
