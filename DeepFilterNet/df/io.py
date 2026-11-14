@@ -13,10 +13,16 @@ try:
     TA_RESAMPLE_SINC = "sinc_interp_hann"
     TA_RESAMPLE_KAISER = "sinc_interp_kaiser"
 except ImportError:
-    from torchaudio.backend.common import AudioMetaData
+    try:
+        from torchaudio.backend.common import AudioMetaData
 
-    TA_RESAMPLE_SINC = "sinc_interpolation"
-    TA_RESAMPLE_KAISER = "kaiser_window"
+        TA_RESAMPLE_SINC = "sinc_interpolation"
+        TA_RESAMPLE_KAISER = "kaiser_window"
+    except ImportError:
+        # Modern torchaudio removed this annotation-only metadata class.
+        AudioMetaData = Any
+        TA_RESAMPLE_SINC = "sinc_interp_hann"
+        TA_RESAMPLE_KAISER = "sinc_interp_kaiser"
 
 from df.logger import warn_once
 from df.utils import download_file, get_cache_dir, get_git_root

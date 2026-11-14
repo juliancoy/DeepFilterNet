@@ -330,3 +330,8 @@ DeepFilterNet is free and open source! All code and model weights in this reposi
 at your option. This means you can select the license you prefer!
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
+## CUDA Docker runner (this fork)
+
+See [docker/README.md](docker/README.md) for the official PyTorch-based image,
+source/input/output volume mounts, and the speech-enhancement run script.

@@ -146,3 +146,12 @@ dmypy.json
 
 # IDE
 .idea
+
+# Local CUDA runs and validation evidence
+**/.test-output/
+**/*.test-log.jsonl
+**/.test-log.jsonl
+/docker/data/
+/docker/cache/
+**/*.test-log.jsonl.lock
+**/.test-log.jsonl.lock
