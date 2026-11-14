@@ -2,7 +2,10 @@ import os
 from typing import Any, Dict, Optional, Tuple, Union
 
 import torch
-import torchaudio as ta
+try:
+    import torchaudio as ta
+except ImportError:
+    from df import soundfile_backend as ta
 from loguru import logger
 from numpy import ndarray
 from torch import Tensor

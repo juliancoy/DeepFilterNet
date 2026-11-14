@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 repo_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
-image=${DEEPFILTERNET_IMAGE:-local/deepfilternet:0.5.6-pytorch2.14.1-cu126}
+image=${DEEPFILTERNET_IMAGE:-local/deepfilternet:0.5.7-pre-pytorch2.14.1-cu126}
 if [[ ${1:-} == --build ]]; then
   shift
-  docker build --file "$repo_dir/docker/Dockerfile" --tag "$image" "$repo_dir/docker"
+  docker build --file "$repo_dir/docker/Dockerfile" --tag "$image" "$repo_dir"
   if (( $# == 0 )); then exit 0; fi
 fi
 if (( $# != 2 )); then
   echo "Usage: $0 [--build] INPUT.wav OUTPUT.wav" >&2
-  echo 'Optional environment: DEEPFILTERNET_GPU=0, DEEPFILTERNET_CACHE, DEEPFILTERNET_IMAGE' >&2
+  echo 'Optional environment: DEEPFILTERNET_GPU=0, DEEPFILTERNET_CACHE, DEEPFILTERNET_IMAGE, DEEPFILTERNET_CONTAINER_NAME' >&2
   exit 2
 fi
 input=$(realpath -- "$1")
@@ -21,7 +21,11 @@ output_name=$(basename -- "$2")
 cache_dir=${DEEPFILTERNET_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/deepfilternet-docker}
 mkdir -p -- "$cache_dir"
 cache_dir=$(realpath -- "$cache_dir")
-exec docker run --rm --init --gpus "device=${DEEPFILTERNET_GPU:-0}" \
+name_args=()
+if [[ -n ${DEEPFILTERNET_CONTAINER_NAME:-} ]]; then
+  name_args=(--name "$DEEPFILTERNET_CONTAINER_NAME")
+fi
+exec docker run "${name_args[@]}" --rm --init --gpus "device=${DEEPFILTERNET_GPU:-0}" \
   --user "$(id -u):$(id -g)" --env HOME=/cache \
   --mount "type=bind,src=$repo_dir,dst=/code,readonly" \
   --mount "type=bind,src=$(dirname -- "$input"),dst=/input,readonly" \
